@@ -5,16 +5,25 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
-enum function_t {SIN, COS, IDENTITY, GAUSSIAN, ABS};
+/*enum function_t {SIN, COS, IDENTITY, GAUSSIAN, ABS};
+
+map<string, function_t> enumResolver;
+
+enumResolver["SIN"] 		= SIN;
+enumResolver["COS"] 		= COS;
+enumResolver["IDENTITY"]	= IDENTITY;
+enumResolver["GAUSSIAN"]	= GAUSSIAN;
+enumResolver["ABS"]			= ABS;*/
 
 class Function
 {
 	public:
 
-		Function(function_t);
+		Function(string);
 		float eval(float);
 		string get_name();
 

@@ -1,5 +1,5 @@
 IDIR =../include
-ODIR=.
+ODIR=../objects
 CDIR=..
 CPP=g++
 CPPFLAGS=-I$(IDIR) -Wall

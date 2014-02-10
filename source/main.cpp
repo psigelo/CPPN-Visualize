@@ -1,52 +1,110 @@
 
 #include "cppn.hpp"
 
-int main()
+using namespace ANN_USM;
+
+int main(int argc, char *argv[])
 {
-	// SIN, COS, IDENTITY, GAUSSIAN, ABS
+	if(argc == 1)
+	{
+		cout << "Usage: " << argv[0] << " <input_file_name> <output_file_name>" << endl;
+		return -1;
+	}
 
 	CPPN * cppn = new CPPN();
 
-	// Nodes
-	cppn->add_node(IDENTITY);	// 0
-	cppn->add_node(IDENTITY);	// 1
-	cppn->add_node(IDENTITY);	// 2
-	cppn->add_node(IDENTITY);	// 3
-	cppn->add_node(IDENTITY);	// 4
-	cppn->add_node(IDENTITY);	// 5
-	cppn->add_node(IDENTITY);	// 6
+	// Set the output file if defined
+	if(argc > 2) cppn->set_file_name(argv[2]);
 
-	// Connections
-	cppn->add_connection(0,2,1.);
-	cppn->add_connection(0,3,1.);
-	cppn->add_connection(1,2,1.);
-	cppn->add_connection(1,3,1.);
-	cppn->add_connection(2,4,1.);
-	cppn->add_connection(2,5,1.);
-	cppn->add_connection(3,4,1.);
-	cppn->add_connection(3,5,1.);
-	cppn->add_connection(4,6,1.);
-	cppn->add_connection(5,6,1.);
+	ifstream file;
+	file.open (argv[1]);
 
-	// Define inputs
-	cppn->set_input(0,1);
+	string specifier;
+	while (file.good()) {
 
-	// Define output
-	cppn->set_output(6);
+		file >> specifier;
 
-	// Set resolution 
-	cppn->set_resolution(2,2);
+		if(specifier == "RESOLUTION")
+		{
+			int x_res;
+			int y_res;
 
-	// Set file name
-	cppn->set_file_name("test1");
+			file >> x_res;
+			file >> y_res;
 
-	// Set cartesian constraints
-	cppn->set_cartesian_constraints(1.0,-1.0,1.0,-1.0);
+			cppn->set_resolution(x_res, y_res);
+		}
+		else if(specifier == "CONSTRAINT")
+		{
+			float x_max;
+			float x_min;
+			float y_max;
+			float y_min;
+
+			file >> x_max;
+			file >> x_min;
+			file >> y_max;
+			file >> y_min;
+
+			cppn->set_cartesian_constraints(x_max, x_min, y_max, y_min);
+		}
+		else if(specifier == "NODE")
+		{
+			int node_num;
+			string function_name;
+    		
+			file >> node_num;
+			for (int i = 0; i < node_num; i++)
+			{
+				file >> function_name;
+
+				cppn->add_node(function_name);
+			}
+		}
+		else if(specifier == "CONNECTION")
+		{
+			int connection_num;
+			int node_1;
+			int node_2;
+			float weight;
+
+			file >> connection_num;
+			for (int i = 0; i < connection_num; i++)
+			{
+				file >> node_1;
+				file >> node_2;
+				file >> weight;
+
+				cppn->add_connection(node_1, node_2, weight);
+			}
+		}
+		else if(specifier == "INPUT")
+		{
+			int node_1;
+			int node_2;
+
+			file >> node_1;
+			file >> node_2;
+
+			cppn->set_input(node_1, node_2);
+		}
+		else if(specifier == "OUTPUT")
+		{
+			int node;
+
+			file >> node;
+
+			cppn->set_output(node);
+		}
+	}
+
+	file.close();
 
 	// Evaluates the plane of points
 	cppn->eval();
 
 	// Print the CPPN
+	// ONLY FOR DEBUGGING PURSPOSE
 	cppn->print();
 
 	return 0;	

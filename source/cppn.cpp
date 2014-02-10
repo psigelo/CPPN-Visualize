@@ -1,6 +1,7 @@
 
-#include <fstream>
 #include "cppn.hpp"
+
+using namespace ANN_USM;
 
 /***********************
 		Connection
@@ -47,7 +48,7 @@ void Connection::set_next_connection(Connection * connection)
 		Node
 ********************/
 
-Node::Node(function_t function, int id)
+Node::Node(string function, int id)
 {
 	this->function = new Function(function);
 	this->id = id;
@@ -156,12 +157,12 @@ CPPN::CPPN()
 	// Default values
 	x_max = y_max = 1;
 	x_min = y_min = -1;
-	x_res = y_res = 2;
+	x_res = y_res = 3;
 	num_nodes = 0;
 	file_name = "cppn-out";
 }
 
-void CPPN::add_node(function_t function)
+void CPPN::add_node(string function)
 {
 	//if(function >= FUNCTION_NUM || function < 0) return;
 
@@ -217,8 +218,8 @@ void CPPN::eval()
 	for (int i = 0; i < y_input; i++) aux_y = aux_y->get_next_node();
 	for (int i = 0; i < output; i++) aux_o = aux_o->get_next_node();
 
-	float x_unit = abs(x_max-x_min)/x_res;
-	float y_unit = abs(y_max-y_min)/y_res;
+	float x_unit = abs(x_max-x_min)/(x_res-1);
+	float y_unit = abs(y_max-y_min)/(y_res-1);
 
 	// Creates the grid of results
 	file << x_res << endl << y_res << endl;

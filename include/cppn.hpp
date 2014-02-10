@@ -4,11 +4,15 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 #include <vector>
 #include "function.hpp"
 
 using namespace std;
+
+namespace ANN_USM
+{
 
 class Connection;
 class Node;
@@ -49,7 +53,7 @@ class Node
 {
 	public:
 
-		Node(function_t,int);
+		Node(string,int);
 		void add_connection(Node*,float);
 		void increase_incoming_connection();
 		void eval(float);
@@ -94,7 +98,7 @@ class CPPN
 
 		CPPN();
 
-		void add_node(function_t);
+		void add_node(string);
 		void add_connection(int,int,float);
 		void eval();
 
@@ -124,5 +128,7 @@ class CPPN
 		int output;							// Output node
 		string file_name;
 };
+
+}
 
 #endif
