@@ -1,5 +1,6 @@
 IDIR =../include
 ODIR=.
+CDIR=..
 CPP=g++
 CPPFLAGS=-I$(IDIR) -Wall
 
@@ -14,7 +15,7 @@ $(ODIR)/%.o: %.cpp $(DEPS)
 	$(CPP) -c -o $@ $< $(CPPFLAGS)
 
 code: $(OBJ)
-	$(CPP) -o $@ $^
+	$(CPP) -o $(CDIR)/$@ $^
 
 .PHONY: clean
 

@@ -102,6 +102,7 @@ class CPPN
 		void set_input(int,int);
 		void set_output(int);
 		void set_resolution(int,int);
+		void set_file_name(string);
 		void set_cartesian_constraints(float,float,float,float);
 
 		// ONLY FOR DEBUGGING PURPOSE
@@ -121,6 +122,7 @@ class CPPN
 		int x_res, y_res;					// Resolution of the grid
 		int x_input, y_input;				// Input nodes
 		int output;							// Output node
+		string file_name;
 };
 
 #endif

@@ -4,12 +4,11 @@
 
 #include <cmath>
 #include <string>
+#include <vector>
 
 using namespace std;
 
 enum function_t {SIN, COS, IDENTITY, GAUSSIAN, ABS};
-
-const float Pi = 3.1415927;
 
 class Function
 {
@@ -23,8 +22,12 @@ class Function
 
 		string function_name;
 
-		// Gaussian Default Parameters
-		float a,b,c,d;
+		// Useful numbers
+		const float Pi;
+		const float E;
+
+		// Function Parameters, if any
+		vector<float> param;
 
 		// Function pointer
 		float (Function::*function)(float);

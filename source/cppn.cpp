@@ -1,4 +1,5 @@
 
+#include <fstream>
 #include "cppn.hpp"
 
 /***********************
@@ -152,7 +153,12 @@ void Node::set_next_node(Node * node)
 
 CPPN::CPPN()
 {
+	// Default values
+	x_max = y_max = 1;
+	x_min = y_min = -1;
+	x_res = y_res = 2;
 	num_nodes = 0;
+	file_name = "cppn-out";
 }
 
 void CPPN::add_node(function_t function)
@@ -196,6 +202,9 @@ void CPPN::add_connection(int node_1, int node_2, float weight)
 
 void CPPN::eval()
 {
+	ofstream file;
+	file.open (file_name.c_str());
+
 	Node * aux_x;
 	Node * aux_y;
 	Node * aux_o;
@@ -211,18 +220,24 @@ void CPPN::eval()
 	float x_unit = abs(x_max-x_min)/x_res;
 	float y_unit = abs(y_max-y_min)/y_res;
 
-	for (float x = x_min; x <= x_max; x += x_unit)
+	// Creates the grid of results
+	file << x_res << endl << y_res << endl;
+	for (float y = y_max; y >= y_min; y -= y_unit)
 	{
-		for (float y = y_min; y <= y_max; y += y_unit)
+		for (float x = x_min; x <= x_max; x += x_unit)
 		{
 			this->reset();
 
 			aux_x->eval(x);
 			aux_y->eval(y);		
 
-			cout << "(" << x << "," << y << ")\t--CPPN--> " << aux_o->get_result() << endl;
+			file << aux_o->get_result() << "\t";
+			//cout << "(" << x << "," << y << ")\t--CPPN--> " << aux_o->get_result() << endl;
 		}
+		file << endl;
 	}
+
+	file.close();
 }
 
 // SETTERS
@@ -266,6 +281,11 @@ void CPPN::set_resolution(int x_res, int y_res)
 {
 	this->x_res = x_res;
 	this->y_res = y_res;
+}
+
+void CPPN::set_file_name(string file_name)
+{
+	this->file_name = file_name;
 }
 
 void CPPN::set_cartesian_constraints(float x_max, float x_min, float y_max, float y_min)

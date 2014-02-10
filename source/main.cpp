@@ -37,6 +37,9 @@ int main()
 	// Set resolution 
 	cppn->set_resolution(2,2);
 
+	// Set file name
+	cppn->set_file_name("test1");
+
 	// Set cartesian constraints
 	cppn->set_cartesian_constraints(1.0,-1.0,1.0,-1.0);
 
