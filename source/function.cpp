@@ -1,5 +1,6 @@
 
 #include "function.hpp"
+#include <iostream>
 
 Function::Function(string function_name) : Pi(M_PI), E(exp(1))
 {
@@ -15,6 +16,11 @@ Function::Function(string function_name) : Pi(M_PI), E(exp(1))
 	}
 	else if(function_name == "ABS")			this->function = &Function::Abs;
 	else if(function_name == "IDENTITY")	this->function = &Function::Identity;
+	else if(function_name == "SIGMOID")
+	{		
+		this->function = &Function::Sigmoid;
+		param.push_back(1.0);
+	}
 
 	this->function_name = function_name;
 }
@@ -47,10 +53,15 @@ float Function::Identity(float input)
 
 float Function::Gaussian(float input)
 {
-	return param.at(0) * exp(pow(input-param.at(1),2)/(2*pow(param.at(2),2))) + param.at(3);
+	return param.at(0) * exp(-pow(input-param.at(1),2)/(2*pow(param.at(2),2))) + param.at(3);
 }
 
 float Function::Abs(float input)
 {
 	return abs(input);
+}
+
+float Function::Sigmoid(float input)
+{
+	return 1/(1+exp(-param.at(0) * input));
 }

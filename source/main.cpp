@@ -7,7 +7,8 @@ int main(int argc, char *argv[])
 {
 	if(argc == 1)
 	{
-		cout << "Usage: " << argv[0] << " <input_file_name> <output_file_name>" << endl;
+		cout << "An input file must be specified." << endl;
+		cout << "Usage: \n\t" << argv[0] << " input_file_name [output_file_name]" << endl<< endl;
 		return -1;
 	}
 
@@ -105,7 +106,7 @@ int main(int argc, char *argv[])
 
 	// Print the CPPN
 	// ONLY FOR DEBUGGING PURSPOSE
-	cppn->print();
+	//cppn->print();
 
 	return 0;	
 }

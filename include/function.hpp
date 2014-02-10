@@ -47,6 +47,7 @@ class Function
 		float Identity(float);
 		float Gaussian(float);
 		float Abs(float);
+		float Sigmoid(float);
 };
 
 #endif

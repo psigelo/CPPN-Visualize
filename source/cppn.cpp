@@ -83,12 +83,14 @@ void Node::increase_incoming_connection()
 void Node::eval(float value)
 {
 	//cout << "node: " << this->get_id() << " | value: " << value << " | result: " << result;
-	result += this->function->eval(value);
+	result += value;
 	counter++;
 	//cout << " | result: " << result << endl;
 
 	if(incoming_connections == counter)
 	{
+		result = this->function->eval(result);
+
 		Node * aux_node;
 		nav_connection = head_connection;
 		for (int i = 0; i < num_connections; i++)
