@@ -1,103 +1,163 @@
 
 #include "cppn.hpp"
+#include <cstring>
 
 using namespace ANN_USM;
 
+void print_usage(string proc)
+{
+	cout << "Usage:" << endl << "\t" << proc << " -i input_file_name [-o output_file_name] [-g]" << endl << endl;
+	/* TO DO: Improve this section*/
+}
+
 int main(int argc, char *argv[])
 {
-	if(argc == 1)
+	string input_file("");
+	string output_file("");
+
+	bool g_flag = false;
+
+	for (int i = 1; i < argc; i++)
 	{
-		cerr << "An input file must be specified." << endl;
-		cerr << "Usage: \n\t" << argv[0] << " input_file_name [output_file_name]" << endl<< endl;
+		if(!strcmp(argv[i], "-g"))
+		{
+			g_flag = true;
+		}
+		else if(!strcmp(argv[i], "-i"))
+		{
+			if(++i < argc) input_file = argv[i];
+			else
+			{
+				cerr << "error: missing input file name after -i" << endl;
+				print_usage(argv[0]);
+				return -1;
+			}
+		}
+		else if(!strcmp(argv[i], "-o"))
+		{
+			if(++i < argc) output_file = argv[i];
+			else
+			{
+				cerr << "error: missing output file name after -o" << endl;
+				print_usage(argv[0]);
+				return -1;
+			}
+		}
+		else if(!strcmp(argv[i], "-h"))
+		{
+			print_usage(argv[0]);
+			return 0;
+		}
+	}
+
+	// Check input file
+	if(input_file == "")
+	{
+		cerr << "error: missing input file." << endl;
+		print_usage(argv[0]);
 		return -1;
 	}
 
-	CPPN * cppn = new CPPN();
+	// Check output file
+	if(output_file == "")
+	{
+		output_file = input_file + ".out";
+	}
 
-	// Set the output file if defined
-	if(argc > 2) cppn->set_file_name(argv[2]);
-	else cppn->set_file_name(argv[1]);
+	/******************
+		Start CPPN
+	*******************/
 
-	ifstream file;
-	file.open (argv[1]);
+	CPPN * cppn = new CPPN(g_flag, output_file);
 
-	string specifier;
-	while (file.good()) {
+	ifstream file(input_file);
+	
+	if(file.is_open())
+	{
+		string specifier;
 
-		file >> specifier;
+		while (file.good()) {
 
-		if(specifier == "RESOLUTION")
-		{
-			int x_res;
-			int y_res;
+			file >> specifier;
 
-			file >> x_res;
-			file >> y_res;
-
-			cppn->set_resolution(x_res, y_res);
-		}
-		else if(specifier == "CONSTRAINT")
-		{
-			float x_max;
-			float x_min;
-			float y_max;
-			float y_min;
-
-			file >> x_max;
-			file >> x_min;
-			file >> y_max;
-			file >> y_min;
-
-			cppn->set_cartesian_constraints(x_max, x_min, y_max, y_min);
-		}
-		else if(specifier == "NODE")
-		{
-			int node_num;
-			string function_name;
-    		
-			file >> node_num;
-			for (int i = 0; i < node_num; i++)
+			if(specifier == "RESOLUTION")
 			{
-				file >> function_name;
+				int x_res;
+				int y_res;
 
-				cppn->add_node(function_name);
+				file >> x_res;
+				file >> y_res;
+
+				cppn->set_resolution(x_res, y_res);
 			}
-		}
-		else if(specifier == "CONNECTION")
-		{
-			int connection_num;
-			int node_1;
-			int node_2;
-			float weight;
-
-			file >> connection_num;
-			for (int i = 0; i < connection_num; i++)
+			else if(specifier == "CONSTRAINT")
 			{
+				float x_max;
+				float x_min;
+				float y_max;
+				float y_min;
+
+				file >> x_max;
+				file >> x_min;
+				file >> y_max;
+				file >> y_min;
+
+				cppn->set_cartesian_constraints(x_max, x_min, y_max, y_min);
+			}
+			else if(specifier == "NODE")
+			{
+				int node_num;
+				string function_name;
+	    		
+				file >> node_num;
+				for (int i = 0; i < node_num; i++)
+				{
+					file >> function_name;
+
+					cppn->add_node(function_name);
+				}
+			}
+			else if(specifier == "CONNECTION")
+			{
+				int connection_num;
+				int node_1;
+				int node_2;
+				float weight;
+
+				file >> connection_num;
+				for (int i = 0; i < connection_num; i++)
+				{
+					file >> node_1;
+					file >> node_2;
+					file >> weight;
+
+					cppn->add_connection(node_1, node_2, weight);
+				}
+			}
+			else if(specifier == "INPUT")
+			{
+				int node_1;
+				int node_2;
+
 				file >> node_1;
 				file >> node_2;
-				file >> weight;
 
-				cppn->add_connection(node_1, node_2, weight);
+				cppn->set_input(node_1, node_2);
+			}
+			else if(specifier == "OUTPUT")
+			{
+				int node;
+
+				file >> node;
+
+				cppn->set_output(node);
 			}
 		}
-		else if(specifier == "INPUT")
-		{
-			int node_1;
-			int node_2;
-
-			file >> node_1;
-			file >> node_2;
-
-			cppn->set_input(node_1, node_2);
-		}
-		else if(specifier == "OUTPUT")
-		{
-			int node;
-
-			file >> node;
-
-			cppn->set_output(node);
-		}
+	}
+	else
+	{
+		cerr << "error: make sure the file '" << input_file << "' exists." << endl;
+		return -1;
 	}
 
 	file.close();

@@ -3,9 +3,9 @@
 
 using namespace ANN_USM;
 
-/***********************
-		Connection
-************************/
+/**********************************************************************************************************************
+	Connection
+***********************************************************************************************************************/
 
 Connection::Connection(Node * node, float weight)
 {
@@ -44,9 +44,9 @@ void Connection::set_next_connection(Connection * connection)
 	this->next_connection = connection; 
 }
 
-/*******************
-		Node
-********************/
+/**********************************************************************************************************************
+	Node
+***********************************************************************************************************************/
 
 Node::Node(string function, int id)
 {
@@ -60,19 +60,19 @@ Node::Node(string function, int id)
 
 void Node::add_connection(Node * node, float weight)
 {
-	nav_connection = new Connection(node, weight);
+	this->nav_connection = new Connection(node, weight);
 
-	if(num_connections == 0)
+	if(this->num_connections == 0)
 	{
-		head_connection = tail_connection = nav_connection;
+		this->head_connection = this->tail_connection = this->nav_connection;
 	}
 	else
 	{
-		tail_connection->set_next_connection(nav_connection);
-		tail_connection = nav_connection;
+		this->tail_connection->set_next_connection(this->nav_connection);
+		this->tail_connection = nav_connection;
 	}
 
-	num_connections++;
+	this->num_connections++;
 }
 
 void Node::increase_incoming_connection() 
@@ -82,21 +82,21 @@ void Node::increase_incoming_connection()
 
 void Node::eval(float value)
 {
-	//cout << "node: " << this->get_id() << " | value: " << value << " | result: " << result;
-	result += value;
-	counter++;
-	//cout << " | result: " << result << endl;
+	this->result += value;
+	this->counter++;
 
-	if(incoming_connections == counter)
+	if(this->incoming_connections == this->counter)
 	{
-		result = this->function->eval(result);
+		this->result = this->function->eval(this->result);
 
 		Node * aux_node;
-		nav_connection = head_connection;
+
+		nav_connection = this->head_connection;
+
 		for (int i = 0; i < num_connections; i++)
 		{
 			aux_node = nav_connection->get_connected_node();
-			aux_node->eval(result * nav_connection->get_weight());
+			aux_node->eval(this->result * nav_connection->get_weight());
 			nav_connection = nav_connection->get_next_connection();
 		}
 	}
@@ -104,8 +104,8 @@ void Node::eval(float value)
 
 void Node::reset() 
 { 
-	counter = 0; 
-	result = 0; 
+	this->counter = 0; 
+	this->result = 0; 
 }
 
 // ONLY FOR DEBUGGING PURPOSE
@@ -125,12 +125,12 @@ void Node::print()
 
 int Node::get_id() 
 { 
-	return id; 
+	return this->id; 
 }
 
 float Node::get_result() 
 { 
-	return result; 
+	return this->result; 
 }
 
 string Node::get_function_name() 
@@ -150,24 +150,19 @@ void Node::set_next_node(Node * node)
 	this->next_node = node; 
 }
 
-/*******************
-		CPPN
-********************/
+/**********************************************************************************************************************
+	CPPN
+***********************************************************************************************************************/
 
-CPPN::CPPN()
+CPPN::CPPN(bool g_flag, string file_name)
 {
-	// Default values
-	x_max = y_max = 1;
-	x_min = y_min = -1;
-	x_res = y_res = 3;
-	num_nodes = 0;
-	file_name = "cppn-out";
+	this->num_nodes = 0;
+	this->g_flag = g_flag;
+	this->file_name = file_name;
 }
 
 void CPPN::add_node(string function)
 {
-	//if(function >= FUNCTION_NUM || function < 0) return;
-
 	nav_node = new Node(function, num_nodes);
 
 	if(num_nodes == 0)
@@ -187,7 +182,7 @@ void CPPN::add_connection(int node_1, int node_2, float weight)
 {
 	if(num_nodes <= node_1 || num_nodes <= node_2) 
 	{
-		cerr << "error at CPPN::add_connection(): one or both of the specified nodes don't exist" << endl;
+		cerr << "error at CPPN::add_connection(): one or both of the specified nodes don't exist." << endl;
 		return;
 	}
 
@@ -205,98 +200,101 @@ void CPPN::add_connection(int node_1, int node_2, float weight)
 
 void CPPN::eval()
 {
+
+	// FIX THIS 
+	
 	ofstream file;
 	file.open (file_name.c_str());
-
-	Node * aux_x;
-	Node * aux_y;
-	Node * aux_o;
-
-	aux_x = head_node;
-	aux_y = head_node;
-	aux_o = head_node;
-
-	for (int i = 0; i < x_input; i++) aux_x = aux_x->get_next_node();
-	for (int i = 0; i < y_input; i++) aux_y = aux_y->get_next_node();
-	for (int i = 0; i < output; i++) aux_o = aux_o->get_next_node();
-
-	float x_unit = abs(x_max-x_min)/(x_res-1);
-	float y_unit = abs(y_max-y_min)/(y_res-1);
-
-	// Creates the grid of results
-	file << x_res << endl << y_res << endl;
-	for (float y = y_max; y >= y_min; y -= y_unit)
+	
+	if(file.is_open())
 	{
-		for (float x = x_min; x <= x_max; x += x_unit)
+		if(g_flag)
 		{
-			this->reset();
+			Node * aux_x;
+			Node * aux_y;
+			Node * aux_b;
+			Node * aux_o;
 
-			aux_x->eval(x);
-			aux_y->eval(y);		
+			aux_x = head_node;
+			aux_y = head_node;
+			aux_o = head_node;
 
-			file << aux_o->get_result() << "\t";
-			//cout << "(" << x << "," << y << ")\t--CPPN--> " << aux_o->get_result() << endl;
+			for (int i = 0; i < this->insput.at(0); i++) aux_x = aux_x->get_next_node();
+			for (int i = 0; i < this->insput.at(1); i++) aux_y = aux_y->get_next_node();
+
+			for (int i = 0; i < this->outputs.at(0); i++) aux_o = aux_o->get_next_node();
+
+			float x_unit = abs(x_max-x_min)/(x_res-1);
+			float y_unit = abs(y_max-y_min)/(y_res-1);
+
+			// Creates the grid of results
+			file << x_res << endl << y_res << endl;
+			for (float y = y_max; y >= y_min; y -= y_unit)
+			{
+				for (float x = x_min; x <= x_max; x += x_unit)
+				{
+					this->reset();
+
+					aux_x->eval(x);
+					aux_y->eval(y);		
+
+					file << aux_o->get_result() << "\t";
+					//cout << "(" << x << "," << y << ")\t--CPPN--> " << aux_o->get_result() << endl;
+				}
+				file << endl;
+			}
 		}
-		file << endl;
-	}
+		else
+		{
 
-	file.close();
+		}
+
+		file.close();
+	}
+	else
+	{
+		cerr << "error: file '" << this->file_name << "' could not be created." << endl;
+		return -1;
+	}
 }
 
 // SETTERS
 
-void CPPN::set_input(int x_node, int y_node)
+void CPPN::set_input(int node)
 {
-	if(num_nodes <= x_node || num_nodes <= y_node)
+	if(num_nodes <= node)
 	{
-		cout << "error at CPPN::set_input(): one or both of the specified nodes don't exist" << endl;
+		cerr << "error at CPPN::set_input(): the specified node '" << node << "' doesn't exist." << endl;
 		return;
 	}
 
-	this->x_input = x_node;
-	this->y_input = y_node;
+	this->inputs.push_back(node);
 
-	Node * aux_x;
-	Node * aux_y;
-
-	aux_x = head_node;
-	aux_y = head_node;
-
-	for (int i = 0; i < x_input; i++) aux_x = aux_x->get_next_node();
-	for (int i = 0; i < y_input; i++) aux_y = aux_y->get_next_node();
-
-	aux_x->increase_incoming_connection();
-	aux_y->increase_incoming_connection();
+	nav_node = head_node;
+	for (int i = 0; i < node; i++) nav_node = nav_node->get_next_node();
+	nav_node->increase_incoming_connection();
 }
 
 void CPPN::set_output(int node)
 {
 	if(num_nodes <= node)
 	{
-		cout << "error at CPPN::set_output(): the specified node doesn't exist" << endl;
+		cerr << "error at CPPN::set_output(): the specified node '" << node << "' doesn't exist" << endl;
 		return;
 	}
 
-	this->output = node;
+	this->outputs.push_back(node);
 }
 
-void CPPN::set_resolution(int x_res, int y_res)
+void CPPN::set_resolution(int resolution)
 {
-	this->x_res = x_res;
-	this->y_res = y_res;
+	this->resolution.push_back(resolution);
 }
 
-void CPPN::set_file_name(string file_name)
+void CPPN::set_cartesian_constraints(float max, float min)
 {
-	this->file_name = file_name + ".out";
-}
-
-void CPPN::set_cartesian_constraints(float x_max, float x_min, float y_max, float y_min)
-{
-	this->x_max = x_max;
-	this->x_min = x_min;
-	this->y_max = y_max;
-	this->y_min = y_min;
+	this->max.push_back(max);
+	this->min.push_back(min);
 }
 
 void CPPN::reset() 
