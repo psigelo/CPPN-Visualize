@@ -21,6 +21,12 @@ Function::Function(string function_name) : Pi(M_PI), E(exp(1))
 		this->function = &Function::Sigmoid;
 		param.push_back(1.0);
 	}
+	else
+	{
+		cerr << "error at Function::Function(): function '" << function_name << "' is not defined." << endl;
+		cerr << "Function 'Identity' was used instead." << endl;
+		this->function = &Function::Identity;
+	}
 
 	this->function_name = function_name;
 }

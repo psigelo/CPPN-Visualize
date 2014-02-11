@@ -14,10 +14,10 @@ window.onload = function()
         if (canvas.getContext)
         {
             var ctx = canvas.getContext('2d');
-            color = Math.floor(255 * (1-weight)/2);
+            color = Math.floor(255 * (1 - weight) / 2);
             console.log(color);
             ctx.fillStyle = "rgb(" + color + "," + color + "," + color + ")";
-            ctx.fillRect(x,y,unit,unit);
+            ctx.fillRect(x, y, unit, unit);
         }
     }
 
@@ -57,5 +57,6 @@ window.onload = function()
             alert("Failed to load file");
         }
     }
+    
     document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
 }

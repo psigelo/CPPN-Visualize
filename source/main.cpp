@@ -7,8 +7,8 @@ int main(int argc, char *argv[])
 {
 	if(argc == 1)
 	{
-		cout << "An input file must be specified." << endl;
-		cout << "Usage: \n\t" << argv[0] << " input_file_name [output_file_name]" << endl<< endl;
+		cerr << "An input file must be specified." << endl;
+		cerr << "Usage: \n\t" << argv[0] << " input_file_name [output_file_name]" << endl<< endl;
 		return -1;
 	}
 
@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
 
 	// Set the output file if defined
 	if(argc > 2) cppn->set_file_name(argv[2]);
+	else cppn->set_file_name(argv[1]);
 
 	ifstream file;
 	file.open (argv[1]);

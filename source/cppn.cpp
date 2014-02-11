@@ -187,7 +187,7 @@ void CPPN::add_connection(int node_1, int node_2, float weight)
 {
 	if(num_nodes <= node_1 || num_nodes <= node_2) 
 	{
-		cout << "error at CPPN::add_connection(): one or both of the specified nodes don't exist" << endl;
+		cerr << "error at CPPN::add_connection(): one or both of the specified nodes don't exist" << endl;
 		return;
 	}
 
@@ -288,7 +288,7 @@ void CPPN::set_resolution(int x_res, int y_res)
 
 void CPPN::set_file_name(string file_name)
 {
-	this->file_name = file_name;
+	this->file_name = file_name + ".out";
 }
 
 void CPPN::set_cartesian_constraints(float x_max, float x_min, float y_max, float y_min)
