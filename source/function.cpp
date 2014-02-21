@@ -31,7 +31,7 @@ Function::Function(string function_name) : Pi(M_PI), E(exp(1))
 	this->function_name = function_name;
 }
 
-float Function::eval(float input)
+double Function::eval(double input)
 {
 	return (this->*function)(input);
 }
@@ -42,32 +42,32 @@ string Function::get_name()
 }
 
 // Functions
-float Function::Sin(float input)
+double Function::Sin(double input)
 {
 	return sin(input);
 }
 
-float Function::Cos(float input)
+double Function::Cos(double input)
 {
 	return cos(input);
 }
 
-float Function::Identity(float input)
+double Function::Identity(double input)
 {
 	return input;
 }
 
-float Function::Gaussian(float input)
+double Function::Gaussian(double input)
 {
 	return param.at(0) * exp(-pow(input-param.at(1),2)/(2*pow(param.at(2),2))) + param.at(3);
 }
 
-float Function::Abs(float input)
+double Function::Abs(double input)
 {
 	return abs(input);
 }
 
-float Function::Sigmoid(float input)
+double Function::Sigmoid(double input)
 {
 	return 1/(1+exp(-param.at(0) * input));
 }

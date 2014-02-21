@@ -7,313 +7,411 @@ using namespace ANN_USM;
 	Connection
 ***********************************************************************************************************************/
 
-Connection::Connection(Node * node, float weight)
+void connection_gene::c_g(int innovation, int in, int out, double weight, bool enable)
 {
-	this->connected_node = node;
-	node->increase_incoming_connection();
+	this->innovation = innovation;
+	this->in = in;
+	this->out = out;
 	this->weight = weight;
-	this->next_connection = NULL;
+	this->enable = enable;
+	this->exist = true;
 }
 
-// GETTERS
-
-Node * Connection::get_connected_node() 
-{ 
-	return this->connected_node; 
+void connection_gene::c_g(bool exist)
+{
+	this->exist = exist;
 }
 
-int Connection::get_connected_node_id() 
-{ 
-	return this->connected_node->get_id(); 
+int connection_gene::get_in()
+{
+	return this->in;
 }
 
-float Connection::get_weight() 
-{ 
-	return this->weight; 
+int connection_gene::get_out()
+{
+	return this->out;
 }
 
-Connection * Connection::get_next_connection() 
-{ 
-	return this->next_connection; 
+int connection_gene::get_innovation()
+{
+	return this->innovation;
 }
 
-// SETTERS
+double connection_gene::get_weight()
+{
+	return this->weight;
+}
 
-void Connection::set_next_connection(Connection * connection) 
-{ 
-	this->next_connection = connection; 
+bool connection_gene::is_enable()
+{
+	return this->enable;
+}
+
+bool connection_gene::do_exist()
+{
+	return this->exist;
 }
 
 /**********************************************************************************************************************
 	Node
 ***********************************************************************************************************************/
 
-Node::Node(string function, int id)
+node_gene::node_gene()
 {
-	this->function = new Function(function);
-	this->id = id;
-	this->counter = 0;
 	this->incoming_connections = 0;
-	this->num_connections = 0;
-	this->next_node = NULL;
+	this->accumulative_result = 0;
+	this->counter = 0;
+	this->final_result = 0;
 }
 
-void Node::add_connection(Node * node, float weight)
+void node_gene::n_g(int node, string function, gene_type type)
 {
-	this->nav_connection = new Connection(node, weight);
-
-	if(this->num_connections == 0)
-	{
-		this->head_connection = this->tail_connection = this->nav_connection;
-	}
-	else
-	{
-		this->tail_connection->set_next_connection(this->nav_connection);
-		this->tail_connection = nav_connection;
-	}
-
-	this->num_connections++;
+	this->node = node;
+	this->type = type;
+	this->exist = true;
+	this->function = new Function(function);
 }
 
-void Node::increase_incoming_connection() 
-{ 
-	this->incoming_connections++; 
-}
-
-void Node::eval(float value)
+void node_gene::n_g(bool exist)
 {
-	this->result += value;
+	this->exist = exist;
+}
+
+void node_gene::increase_incoming_connection()
+{
+	this->incoming_connections++;
+}
+
+void node_gene::reset_counter()
+{
+	this->counter = 0;
+}
+
+int node_gene::get_node()
+{
+	return this->node;
+}
+
+/*! \brief 	Evaluate the incoming value from another node into the current node.
+ *
+ *			While there are incoming connections left, the evaluation consist only in the sum of the accumulative
+ *	result with the new value. Now if the current evaluation is the last one in the node *(there are no more incoming 
+ *	connections left)*, the accumulative result is evaluated in the node's function and assigned to the 'final_result'
+ *	variable.
+*/
+void node_gene::eval(double value)
+{
+	this->accumulative_result += value;
 	this->counter++;
-
-	if(this->incoming_connections == this->counter)
+	
+	if(this->is_ready())
 	{
-		this->result = this->function->eval(this->result);
+		this->final_result = this->function->eval(this->accumulative_result);
+		this->accumulative_result = 0;
+	}
+}
 
-		Node * aux_node;
+bool node_gene::is_ready()
+{
+	return this->incoming_connections == this->counter;
+}
 
-		nav_connection = this->head_connection;
+bool node_gene::do_exist()
+{
+	return this->exist;
+}
 
-		for (int i = 0; i < num_connections; i++)
+double node_gene::get_final_result()
+{
+	return this->final_result;
+}
+
+gene_type node_gene::get_type()
+{
+	return this->type;
+}
+
+//**********************************************************************************************************************
+//	CPPN
+//**********************************************************************************************************************
+
+void Genome::add_connection(int innovation, int in, int out, double weight)
+{
+	int list_size(Lconnection_genes.size());
+
+	if(innovation >= list_size)
+	{
+		connection_gene missing_connection_gene;
+		connection_gene new_connection;
+
+		missing_connection_gene.c_g(false); // connection that not exist in this genome
+		new_connection.c_g(innovation,in,out,weight,true);
+
+		for (int i = 0; i < innovation-list_size; ++i)
 		{
-			aux_node = nav_connection->get_connected_node();
-			aux_node->eval(this->result * nav_connection->get_weight());
-			nav_connection = nav_connection->get_next_connection();
+			Lconnection_genes.push_back(missing_connection_gene);
 		}
+		Lconnection_genes.push_back(new_connection);
 	}
-}
-
-void Node::reset() 
-{ 
-	this->counter = 0; 
-	this->result = 0; 
-}
-
-// ONLY FOR DEBUGGING PURPOSE
-void Node::print()
-{	
-	nav_connection = head_connection;
-	cout << "Node: " << this->get_id() << " | Function: " << this->get_function_name() << endl << "   ";
-	for (int i = 0; i < num_connections; i++)
+	else 
 	{
-		cout << "(" << nav_connection->get_connected_node_id() << "," << nav_connection->get_weight() << ") ";
-		nav_connection = nav_connection->get_next_connection();
-	}
-	cout << endl;
-}
-
-// GETTERS
-
-int Node::get_id() 
-{ 
-	return this->id; 
-}
-
-float Node::get_result() 
-{ 
-	return this->result; 
-}
-
-string Node::get_function_name() 
-{ 
-	return this->function->get_name(); 
-}
-
-Node * Node::get_next_node() 
-{ 
-	return this->next_node; 
-}
-
-// SETTERS
-
-void Node::set_next_node(Node * node) 
-{ 
-	this->next_node = node; 
-}
-
-/**********************************************************************************************************************
-	CPPN
-***********************************************************************************************************************/
-
-CPPN::CPPN(bool g_flag, string file_name)
-{
-	this->num_nodes = 0;
-	this->g_flag = g_flag;
-	this->file_name = file_name;
-}
-
-void CPPN::add_node(string function)
-{
-	nav_node = new Node(function, num_nodes);
-
-	if(num_nodes == 0)
-	{
-		head_node = tail_node = nav_node;
-	}
-	else
-	{
-		tail_node->set_next_node(nav_node);
-		tail_node = nav_node;
-	}
-
-	num_nodes++;
-}
-
-void CPPN::add_connection(int node_1, int node_2, float weight)
-{
-	if(num_nodes <= node_1 || num_nodes <= node_2) 
-	{
-		cerr << "error at CPPN::add_connection(): one or both of the specified nodes don't exist." << endl;
-		return;
-	}
-
-	Node * aux_1;
-	Node * aux_2;
-
-	aux_1 = head_node;
-	aux_2 = head_node;
-
-	while(node_1-- > 0) aux_1 = aux_1->get_next_node();
-	while(node_2-- > 0) aux_2 = aux_2->get_next_node();
-
-	aux_1->add_connection(aux_2, weight);
-}
-
-void CPPN::eval()
-{
-
-	// FIX THIS 
-	
-	ofstream file;
-	file.open (file_name.c_str());
-	
-	if(file.is_open())
-	{
-		if(g_flag)
+		if(Lconnection_genes[innovation].do_exist())
 		{
-			Node * aux_x;
-			Node * aux_y;
-			Node * aux_b;
-			Node * aux_o;
-
-			aux_x = head_node;
-			aux_y = head_node;
-			aux_o = head_node;
-
-			for (int i = 0; i < this->insput.at(0); i++) aux_x = aux_x->get_next_node();
-			for (int i = 0; i < this->insput.at(1); i++) aux_y = aux_y->get_next_node();
-
-			for (int i = 0; i < this->outputs.at(0); i++) aux_o = aux_o->get_next_node();
-
-			float x_unit = abs(x_max-x_min)/(x_res-1);
-			float y_unit = abs(y_max-y_min)/(y_res-1);
-
-			// Creates the grid of results
-			file << x_res << endl << y_res << endl;
-			for (float y = y_max; y >= y_min; y -= y_unit)
-			{
-				for (float x = x_min; x <= x_max; x += x_unit)
-				{
-					this->reset();
-
-					aux_x->eval(x);
-					aux_y->eval(y);		
-
-					file << aux_o->get_result() << "\t";
-					//cout << "(" << x << "," << y << ")\t--CPPN--> " << aux_o->get_result() << endl;
-				}
-				file << endl;
-			}
+			cerr << "ERROR::In function add_connection, you wanted to add a connection gene with an innovation that already exists" << endl;	
+			return;
 		}
 		else
+			Lconnection_genes[innovation].c_g(innovation,in,out,weight,true);
+	}
+
+	this->Lnode_genes.at(out).increase_incoming_connection();
+}
+
+void Genome::add_node(int node, string function, gene_type type)
+{
+	int list_size(Lnode_genes.size());
+
+	if(node >= list_size)
+	{
+		node_gene missing_node_gene;
+		node_gene new_node;
+
+		missing_node_gene.n_g(false);
+		new_node.n_g(node, function, type);
+
+		for (int i = 0; i < node - list_size; ++i)
+			Lnode_genes.push_back(missing_node_gene);
+
+		if(type == INPUT) new_node.increase_incoming_connection();
+
+		this->Lnode_genes.push_back(new_node);
+	}
+	else
+		if(this->Lnode_genes[node].do_exist())
 		{
-
+			cerr << "ERROR::In function add_node , you wanted to add a node gene with a node number that already exists" << endl;	
+			return;
 		}
+		else
+			this->Lnode_genes[node].n_g(node, function, type);
 
-		file.close();
+	if(type == INPUT) this->input_nodes.push_back(node);
+	else if(type == OUTPUT) this->output_nodes.push_back(node);
+}
+
+/*! \brief 	Returns all the connections that have the specific node id as an outgoing one.
+*/
+vector<connection_gene> Genome::get_outgoing_connections(int node)
+{
+	vector<connection_gene> outgoing_connections;
+
+	for (int i = 0; i < (int)this->Lconnection_genes.size(); i++)
+	{
+		if(	this->Lconnection_genes.at(i).do_exist() && \
+			this->Lconnection_genes.at(i).is_enable() && \
+			this->Lconnection_genes.at(i).get_in() == node)
+			outgoing_connections.push_back(this->Lconnection_genes.at(i));
+	}
+	
+	return outgoing_connections;
+}
+
+/*! \brief 	Recursive function that spreads the final result of the current node to all the connected nodes and so on.
+*/
+void Genome::spread_final_result(int node, double value)
+{
+	// Evaluates the node
+	this->Lnode_genes.at(node).eval(value);
+
+	if(this->Lnode_genes.at(node).is_ready())
+	{
+		this->Lnode_genes.at(node).reset_counter();
+
+		value = this->Lnode_genes.at(node).get_final_result();
+
+		vector<connection_gene> outgoing_connections = this->get_outgoing_connections(node);
+
+		for (int i = 0; i < (int)outgoing_connections.size(); i++)
+		{
+			//cout << "     --> i: " << i << " spread to node " << outgoing_connections.at(i).get_out() << endl;
+			this->spread_final_result(outgoing_connections.at(i).get_out(), value * outgoing_connections.at(i).get_weight());
+		}
+	}
+}
+
+/*! \brief 	Evaluation function used to get the output vector from the input vector.
+*			This function represents the purpose of the CPPN.
+*/
+vector<double> Genome::eval(vector<double> inputs)
+{
+	vector<double> outputs;
+
+	if(inputs.size() != this->input_nodes.size())
+	{
+		cerr << "error in function 'Genome::eval'. Number of input values differ from number of input nodes." << endl;
 	}
 	else
 	{
-		cerr << "error: file '" << this->file_name << "' could not be created." << endl;
-		return -1;
+		// Spread the initial values through the network
+		for (int i = 0; i < (int)this->input_nodes.size(); i++)
+			this->spread_final_result(this->input_nodes.at(i), inputs.at(i));
+
+		// Recollect all the final results from the output nodes
+		for (int i = 0; i < (int)this->output_nodes.size(); i++)
+			outputs.push_back(this->Lnode_genes.at(this->output_nodes.at(i)).get_final_result());	
 	}
+
+	return outputs;
 }
 
-// SETTERS
-
-void CPPN::set_input(int node)
+/*! \brief 	Overload of the operator '<<' with the purpose of printing JSON files.
+*/
+ostream & operator<<(ostream & o, Genome & encoding) 
 {
-	if(num_nodes <= node)
+	o << encoding.JSON();	
+	return o;
+}
+
+string Genome::JSON()
+{
+	stringstream o;
+
+	o << "{\n\t\"Genome\":\n\t{\n\t\t\"nodes\":\n\t\t[\n";
+
+	int node_size(Lnode_genes.size());
+	int connection_size(Lconnection_genes.size());
+
+	for (int i = 0; i < node_size; ++i)
 	{
-		cerr << "error at CPPN::set_input(): the specified node '" << node << "' doesn't exist." << endl;
-		return;
+		if(Lnode_genes[i].do_exist())
+			o << "\t\t\t{\"exist\": " << Lnode_genes[i].do_exist()  << ",\"node\": " <<Lnode_genes[i].get_node() << ",\"type\": " << Lnode_genes[i].get_type();
+		else
+			o << "\t\t\t{\"exist\": " << Lnode_genes[i].do_exist() ;
+
+		if(i<node_size-1)
+			o <<  "},\n";
+		else
+			o <<  "}\n";
 	}
 
-	this->inputs.push_back(node);
-
-	nav_node = head_node;
-	for (int i = 0; i < node; i++) nav_node = nav_node->get_next_node();
-	nav_node->increase_incoming_connection();
-}
-
-void CPPN::set_output(int node)
-{
-	if(num_nodes <= node)
+	o << "\t\t],\n\t\t\"connection_genes\":\n\t\t[\n";
+	for (int i = 0; i < connection_size; ++i)
 	{
-		cerr << "error at CPPN::set_output(): the specified node '" << node << "' doesn't exist" << endl;
-		return;
+		if(Lconnection_genes[i].do_exist())
+			o << "\t\t\t{\"exist\": " << Lconnection_genes[i].do_exist() << ",\"innovation\": " << Lconnection_genes[i].get_innovation() << ",\"in\": " << Lconnection_genes[i].get_in() << ",\"out\": " << Lconnection_genes[i].get_out() << ",\"weight\": " << Lconnection_genes[i].get_weight() << ",\"enable\": " << Lconnection_genes[i].is_enable();
+		else
+			o << "\t\t\t{\"exist\": " << Lconnection_genes[i].do_exist();
+		
+		if(i<connection_size-1)
+			o <<  "},\n";
+		else
+			o <<  "}\n";
 	}
-
-	this->outputs.push_back(node);
+	
+	o << "\t\t]\n\t}\n}";
+	return o.str();
 }
 
-void CPPN::set_resolution(int resolution)
+
+void Genome::save(char path[])
 {
-	this->resolution.push_back(resolution);
+	ofstream file;
+	file.open (path);
+	file << JSON();
+	file.close();
 }
 
-void CPPN::set_cartesian_constraints(float max, float min)
+void Genome::load(char path[])
 {
-	this->max.push_back(max);
-	this->min.push_back(min);
-}
 
-void CPPN::reset() 
-{
-	nav_node = head_node;
-	for (int i = 0; i < num_nodes; i++)
-	{
-		nav_node->reset();
-		nav_node = nav_node->get_next_node();
-	}
-}
+	node_gene Nnew_node;
+	connection_gene Cnew_node;
 
-// ONLY FOR DEBUGGING PURPOSE
-void CPPN::print()
-{
-	nav_node = head_node;
-	for (int i = 0; i < num_nodes; i++) 
-	{
-		nav_node->print();
-		nav_node = nav_node->get_next_node();
-	}
+	Lconnection_genes.clear(); 
+	Lnode_genes.clear();
+
+	ifstream file (path);
+	file.seekg (0, file.end);
+    int length = file.tellg();
+    file.seekg (0, file.beg);
+	char buffer[length]; // In JSON format
+	file.read (buffer,length);
+	file.close();
+
+	bool exist;
+	int node;
+	int type;
+	int innovation;
+	int in;
+	int out;
+	double weight;
+	int enable;
+	int contador(0);
+	bool connection(false);
+
+	char * pch;
+	char delimiters[] = " \n\":\t{},[";
+	pch = strtok (buffer,delimiters);
+	
+	do{
+		pch = strtok (NULL, delimiters);
+		if(!(pch[0] == ']')){
+			if(connection){
+				if(!strncmp(pch, "exist",5)){
+					pch = strtok (NULL, delimiters);
+					exist = atoi(pch);
+					if(exist){
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						innovation = atoi(pch);
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						in = atoi(pch);
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						out = atoi(pch);
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						weight = (double)atof(pch);
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						enable = atoi(pch);
+						Cnew_node.c_g(innovation, in, out, weight, (bool)enable);
+						Lconnection_genes.push_back(Cnew_node);
+					}
+					else{
+						Cnew_node.c_g(false);
+						Lconnection_genes.push_back(Cnew_node);
+					}
+				} 
+			}
+			else{
+				if(!strncmp(pch, "exist",5)){
+					pch = strtok (NULL, delimiters);
+					exist = atoi(pch);
+					if(exist){
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						node = atoi(pch);
+						pch = strtok (NULL, delimiters);
+						pch = strtok (NULL, delimiters);
+						type = atoi(pch);
+						Nnew_node.n_g(node, "IDENTITY", (gene_type) type);
+						Lnode_genes.push_back(Nnew_node);
+					}
+					else{
+						Nnew_node.n_g(false);
+						Lnode_genes.push_back(Nnew_node);
+					}
+				} 
+			}
+		}
+		else{
+			contador=contador+1;
+			connection = true;
+			if(contador==2){
+				break;
+			}
+		}
+	}while (pch != NULL);
 }

@@ -5,26 +5,17 @@
 #include <cmath>
 #include <string>
 #include <vector>
-#include <map>
 
 using namespace std;
-
-/*enum function_t {SIN, COS, IDENTITY, GAUSSIAN, ABS};
-
-map<string, function_t> enumResolver;
-
-enumResolver["SIN"] 		= SIN;
-enumResolver["COS"] 		= COS;
-enumResolver["IDENTITY"]	= IDENTITY;
-enumResolver["GAUSSIAN"]	= GAUSSIAN;
-enumResolver["ABS"]			= ABS;*/
 
 class Function
 {
 	public:
 
 		Function(string);
-		float eval(float);
+
+		double eval(double);
+
 		string get_name();
 
 	private:
@@ -32,22 +23,22 @@ class Function
 		string function_name;
 
 		// Useful numbers
-		const float Pi;
-		const float E;
+		const double Pi;
+		const double E;
 
 		// Function Parameters, if any
-		vector<float> param;
+		vector<double> param;
 
 		// Function pointer
-		float (Function::*function)(float);
+		double (Function::*function)(double);
 
 		// Functions
-		float Sin(float);
-		float Cos(float);
-		float Identity(float);
-		float Gaussian(float);
-		float Abs(float);
-		float Sigmoid(float);
+		double Sin(double);
+		double Cos(double);
+		double Identity(double);
+		double Gaussian(double);
+		double Abs(double);
+		double Sigmoid(double);
 };
 
 #endif

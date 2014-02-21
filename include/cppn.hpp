@@ -2,137 +2,137 @@
 #ifndef CPPN_HH
 #define CPPN_HH
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <cstdio>
 #include <vector>
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <cstring>
 #include "function.hpp"
 
 using namespace std;
 
 namespace ANN_USM
 {
-
-	class Connection;
-	class Node;
-	class CPPN;
+	enum gene_type{
+		INPUT,
+		HIDDEN,
+		OUTPUT
+	};
 
 	/**********************************************************************************************************************
 		Connection
 	***********************************************************************************************************************/
 
-	class Connection
+	class connection_gene
 	{
 		public:
 
-			Connection(Node*,float);
+			// in of the connection
+			// out of the connection
+			
+			void c_g(int innovation, int in, int out, double weight, bool enable); // fill a conection gene
+			void c_g(bool exist);
 
-			// GETTERS
-			float get_weight();
-			int get_connected_node_id();
-			Connection * get_next_connection();
-			Node * get_connected_node();
+			int get_out();
+			int get_in();
+			int get_innovation();
 
-			// SETTERS
-			void set_next_connection(Connection*);
+			double get_weight();
+
+			bool is_enable();
+			bool do_exist();
 
 		private:
 
-			Connection * next_connection;
-			Node * connected_node;
+			int innovation;
+			int in;
+			int out;
 
-			float weight;
+			bool enable;
+			bool exist; 
+
+			double weight;
 	};
 
 	/**********************************************************************************************************************
 		Node
 	***********************************************************************************************************************/
 
-	class Node
+	class node_gene
 	{
 		public:
 
-			Node(string,int);
-			
-			void add_connection(Node*,float);
+			node_gene();
+
+			void n_g(int node, string function, gene_type type);
+			void n_g(bool exist);
 			void increase_incoming_connection();
-			void eval(float);
-			void reset();
+			void eval(double value);
+			void increase_accumulative_result(double value);
+			void reset_counter();
 
-			// GETTERS
-			int get_id();
-			float get_result();
-			string get_function_name();
-			Node * get_next_node();
+			double get_final_result();
 
-			// SETTERS
-			void set_next_node(Node*);
+			bool is_ready();
+			bool do_exist();
 
-			// ONLY FOR DEBUGGING PURPOSE
-			void print();
+			int get_node();
+			gene_type get_type();
 
 		private:
 
-			Node * next_node;					// Next node of the chain
+			int node;
+			int incoming_connections;
+			int counter;
 
-			Connection * head_connection;		// Pointer to the first connection (of the current node)
-			Connection * tail_connection;		// Pointer to the last connection (of the current node)
-			Connection * nav_connection;		// Multipurpose navigation pointer
+			bool exist;
 
-			Function * function;				// Function object
+			double accumulative_result;
+			double final_result;
 
-			int num_connections;				// Number of connections
-			int id; 							// Node id
-			int counter;						// Counter used in the evaluation to see if all incoming connections have been done 
-			int incoming_connections;			// Number of incoming connections
-			float result;						// Accumulative results of node evaluations
+			gene_type type;
+
+			Function * function;
 	};
 
 	/**********************************************************************************************************************
 		CPPN
 	***********************************************************************************************************************/
 
-	class CPPN
+	class Genome
 	{
 		public:
 
-			CPPN(bool,string);
+			void add_node(int node, string function, gene_type type);
+			void add_connection(int innovation, int in, int out, double weight);
+			void change_weight(int innovation, double weight);
 
-			void add_node(string);
-			void add_connection(int,int,float);
-			void eval();
+			vector<double> eval(vector<double> inputs);
 
-			// SETTERS
-			void set_input(int);
-			void set_output(int);
-			void set_resolution(int);
-			//void set_file_name(string);
-			void set_cartesian_constraints(float,float);
+			// Save the current configuration into a file
+			void save(char path[]);
 
-			// ONLY FOR DEBUGGING PURPOSE
-			void print();
+			// Load a previous configuration from a file
+			void load(char path[]);
+
+			string JSON();
 
 		private:
 
-			void reset();
+			vector <connection_gene> Lconnection_genes; // List of connections genes
+			vector <node_gene> Lnode_genes;				// List of node genes
 
-			int num_nodes;			// Number of nodes
-			bool g_flag;			// Graphic flag
+			//bool is_finished();
 
-			string file_name;		// File name
+			void spread_final_result(int node, double value);
 
-			Node * head_node;		// Pointer to the first node
-			Node * tail_node;		// Pointer to the last node
-			Node * nav_node;		// Multipurpose navigator pointer
+			vector<connection_gene> get_outgoing_connections(int node);
 
-			vector<float> max;		// Cartesian constraints of the multidimensional grid
-			vector<float> min;					
-			vector<int> resolution;	// Resolution of the multidimensional grid
-			vector<int> inputs;		// Input nodes
-			vector<int> outputs;	// Output nodes
+			vector<int> input_nodes;			// Input nodes
+			vector<int> output_nodes;			// Output nodes
 	};
-
 }
 
 #endif
