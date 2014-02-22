@@ -1,2 +1,2 @@
 all:
-	cd ./source; make
+	cd ../CPPN-Visualize/source; make
